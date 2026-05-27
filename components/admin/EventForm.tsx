@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { formatPrice } from '@/lib/utils'
-import { Save, Trash2, Globe, FileEdit, Plus, X } from 'lucide-react'
+import { Save, Trash2, Globe, FileEdit, Plus, X, Pencil, Check } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
 import Button from '@/components/ui/Button'
@@ -101,6 +101,11 @@ export default function EventForm({ event, tiers: initialTiers = [] }: EventForm
     toast.success('Ticket tier added!')
   }
 
+  const handleTierUpdated = (tier: TicketTier) => {
+    setTiers((prev) => prev.map((t) => (t.id === tier.id ? tier : t)))
+    toast.success('Tier updated!')
+  }
+
   const handleTierDeleted = (tierId: string) => {
     setTiers((prev) => prev.filter((t) => t.id !== tierId))
   }
@@ -194,7 +199,7 @@ export default function EventForm({ event, tiers: initialTiers = [] }: EventForm
           <Section title="Ticket Tiers">
             <div className="space-y-3">
               {tiers.map((tier) => (
-                <TierRow key={tier.id} tier={tier} eventId={event!.id} onDeleted={handleTierDeleted} />
+                <TierRow key={tier.id} tier={tier} eventId={event!.id} onUpdated={handleTierUpdated} onDeleted={handleTierDeleted} />
               ))}
 
               {tiers.length === 0 && (
@@ -243,9 +248,77 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function TierRow({ tier, eventId, onDeleted }: { tier: TicketTier; eventId: string; onDeleted: (id: string) => void }) {
+function TierRow({
+  tier,
+  eventId,
+  onUpdated,
+  onDeleted,
+}: {
+  tier: TicketTier
+  eventId: string
+  onUpdated: (tier: TicketTier) => void
+  onDeleted: (id: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const remaining = tier.quantity_total - tier.quantity_sold
+
+  const [form, setForm] = useState({
+    name: tier.name,
+    description: tier.description ?? '',
+    price_dollars: (tier.price_cents / 100).toFixed(2),
+    quantity_total: String(tier.quantity_total),
+    is_vip: tier.is_vip,
+    sort_order: String(tier.sort_order),
+  })
+  const [perks, setPerks] = useState<string[]>(
+    tier.perks && tier.perks.length > 0 ? tier.perks : ['']
+  )
+
+  const update = (key: string, value: string | boolean) =>
+    setForm((prev) => ({ ...prev, [key]: value }))
+
+  const updatePerk = (i: number, value: string) =>
+    setPerks((prev) => prev.map((p, idx) => (idx === i ? value : p)))
+  const addPerk = () => setPerks((prev) => [...prev, ''])
+  const removePerk = (i: number) => setPerks((prev) => prev.filter((_, idx) => idx !== i))
+
+  const handleSave = async () => {
+    if (!form.name || !form.price_dollars || !form.quantity_total) {
+      toast.error('Name, price, and quantity are required.')
+      return
+    }
+    const qty = parseInt(form.quantity_total)
+    if (qty < tier.quantity_sold) {
+      toast.error(`Quantity can't be less than ${tier.quantity_sold} (already sold).`)
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/events/${eventId}/tiers/${tier.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          description: form.description || undefined,
+          price_cents: Math.round(parseFloat(form.price_dollars) * 100),
+          quantity_total: qty,
+          is_vip: form.is_vip,
+          sort_order: parseInt(form.sort_order) || 0,
+          perks: perks.filter(Boolean),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(JSON.stringify(data.error))
+      onUpdated(data.tier as TicketTier)
+      setEditing(false)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save tier')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleDelete = async () => {
     if (!confirm(`Delete tier "${tier.name}"?`)) return
@@ -261,23 +334,139 @@ function TierRow({ tier, eventId, onDeleted }: { tier: TicketTier; eventId: stri
   }
 
   return (
-    <div className="flex items-center justify-between bg-surface-2 border border-surface-3 rounded-xl px-4 py-3">
-      <div>
-        <div className="flex items-center gap-2">
-          <span className="text-white font-medium text-sm">{tier.name}</span>
-          {tier.is_vip && <span className="text-xs px-1.5 py-0.5 rounded bg-brand-gold/20 text-brand-gold border border-brand-gold/30">VIP</span>}
+    <div className="bg-surface-2 border border-surface-3 rounded-xl overflow-hidden">
+      {/* Collapsed header row */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-white font-medium text-sm">{tier.name}</span>
+            {tier.is_vip && (
+              <span className="text-xs px-1.5 py-0.5 rounded bg-brand-gold/20 text-brand-gold border border-brand-gold/30">VIP</span>
+            )}
+          </div>
+          <p className="text-gray-500 text-xs mt-0.5">
+            {formatPrice(tier.price_cents)} · {tier.quantity_sold} sold / {tier.quantity_total} total · {remaining} remaining
+          </p>
         </div>
-        <p className="text-gray-500 text-xs mt-0.5">
-          {formatPrice(tier.price_cents)} · {tier.quantity_sold} sold / {tier.quantity_total} total · {remaining} remaining
-        </p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setEditing((v) => !v)}
+            title={editing ? 'Cancel edit' : 'Edit tier'}
+            className={`transition-colors ${editing ? 'text-brand-gold' : 'text-gray-600 hover:text-brand-gold'}`}
+          >
+            {editing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="text-gray-600 hover:text-red-400 transition-colors disabled:opacity-40"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
-      <button
-        onClick={handleDelete}
-        disabled={deleting}
-        className="text-gray-600 hover:text-red-400 transition-colors disabled:opacity-40"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+
+      {/* Inline edit form */}
+      {editing && (
+        <div className="border-t border-surface-3 px-4 pb-4 pt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              label="Tier Name *"
+              value={form.name}
+              onChange={(e) => update('name', e.target.value)}
+              placeholder="General Admission"
+            />
+            <Input
+              label="Description"
+              value={form.description}
+              onChange={(e) => update('description', e.target.value)}
+              placeholder="Standard entry"
+            />
+            <Input
+              label="Price (USD) *"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.price_dollars}
+              onChange={(e) => update('price_dollars', e.target.value)}
+              placeholder="25.00"
+            />
+            <Input
+              label="Total Quantity *"
+              type="number"
+              min={tier.quantity_sold}
+              value={form.quantity_total}
+              onChange={(e) => update('quantity_total', e.target.value)}
+              hint={tier.quantity_sold > 0 ? `Min ${tier.quantity_sold} (already sold)` : undefined}
+            />
+            <Input
+              label="Sort Order"
+              type="number"
+              min="0"
+              value={form.sort_order}
+              onChange={(e) => update('sort_order', e.target.value)}
+              hint="Lower = shown first"
+            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-300">VIP Tier</label>
+              <label className="flex items-center gap-2 cursor-pointer mt-2">
+                <input
+                  type="checkbox"
+                  checked={form.is_vip}
+                  onChange={(e) => update('is_vip', e.target.checked)}
+                  className="w-4 h-4 accent-brand-gold"
+                />
+                <span className="text-sm text-gray-300">Mark as VIP package</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Perks */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Perks / Inclusions</label>
+            <div className="space-y-2">
+              {perks.map((perk, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={perk}
+                    onChange={(e) => updatePerk(i, e.target.value)}
+                    placeholder={`Perk ${i + 1} (e.g. Priority entry)`}
+                    className="flex-1 px-3 py-2 rounded-lg bg-surface-3 border border-surface-4 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                  />
+                  {perks.length > 1 && (
+                    <button type="button" onClick={() => removePerk(i)} className="text-gray-500 hover:text-red-400">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addPerk}
+                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-gold transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add perk
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="text-sm text-gray-500 hover:text-white transition-colors px-3 py-1.5"
+            >
+              Cancel
+            </button>
+            <Button variant="primary" size="sm" loading={saving} onClick={handleSave}>
+              <Check className="w-3.5 h-3.5" />
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
