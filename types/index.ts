@@ -61,6 +61,15 @@ export interface OrderItem {
   ticket_tiers?: TicketTier
 }
 
+export type FeeType = 'none' | 'percentage' | 'flat' | 'both'
+
+export interface FeeSettings {
+  fee_type: FeeType
+  fee_percentage: number   // e.g. 3.5 means 3.5%
+  fee_flat_cents: number   // e.g. 150 means $1.50
+  fee_label: string        // e.g. "Service Fee"
+}
+
 // Cart state managed client-side before checkout
 export interface CartItem {
   tierId: string

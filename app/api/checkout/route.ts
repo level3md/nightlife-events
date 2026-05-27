@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase'
+import { calculateFee, DEFAULT_FEE_SETTINGS } from '@/lib/fees'
+import type { FeeSettings } from '@/types'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -25,6 +27,17 @@ export async function POST(req: Request) {
 
   const { eventId, items } = parsed.data
   const supabase = createAdminClient()
+
+  // Load fee settings (fall back to no fee if table doesn't exist yet)
+  let feeSettings: FeeSettings = DEFAULT_FEE_SETTINGS
+  try {
+    const { data: settingsRow } = await supabase
+      .from('platform_settings')
+      .select('fee_type, fee_percentage, fee_flat_cents, fee_label')
+      .eq('id', 1)
+      .single()
+    if (settingsRow) feeSettings = settingsRow as FeeSettings
+  } catch { /* table not yet created — proceed with no fee */ }
 
   type TierRow = { id: string; name: string; price_cents: number; quantity_total: number; quantity_sold: number; is_vip: boolean }
   type EventRow = { id: string; name: string; slug: string; status: string; ticket_tiers: TierRow[] }
@@ -78,6 +91,22 @@ export async function POST(req: Request) {
     })
   }
 
+  // Calculate and append the processing fee if configured
+  const feeCents = calculateFee(totalCents, feeSettings)
+  if (feeCents > 0) {
+    lineItems.push({
+      price_data: {
+        currency: 'usd',
+        unit_amount: feeCents,
+        product_data: {
+          name: feeSettings.fee_label,
+          description: 'Non-refundable processing fee',
+        },
+      },
+      quantity: 1,
+    })
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   // Create a pending order record before redirecting to Stripe
@@ -87,7 +116,8 @@ export async function POST(req: Request) {
     .insert({
       customer_email: '',   // filled by Stripe; updated via webhook
       status: 'pending',
-      total_cents: totalCents,
+      total_cents: totalCents + feeCents,
+      fee_cents: feeCents,
     })
     .select()
     .single()

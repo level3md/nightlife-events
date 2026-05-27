@@ -4,13 +4,14 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, Calendar, Ticket, LogOut, Users } from 'lucide-react'
+import { LayoutDashboard, Calendar, Ticket, LogOut, Users, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/events', label: 'Events', icon: Calendar, exact: false },
   { href: '/admin/users', label: 'Admin Users', icon: Users, exact: false },
+  { href: '/admin/settings', label: 'Settings', icon: Settings, exact: false },
 ]
 
 export default function AdminSidebar() {

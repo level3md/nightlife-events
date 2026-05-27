@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ShoppingCart, Lock } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { calculateFee, DEFAULT_FEE_SETTINGS } from '@/lib/fees'
 import Button from '@/components/ui/Button'
-import type { TicketTier } from '@/types'
+import type { TicketTier, FeeSettings } from '@/types'
 import toast from 'react-hot-toast'
 
 interface CartEntry {
@@ -20,6 +21,14 @@ interface CheckoutPanelProps {
 
 export default function CheckoutPanel({ eventId, tiers, cart }: CheckoutPanelProps) {
   const [loading, setLoading] = useState(false)
+  const [feeSettings, setFeeSettings] = useState<FeeSettings>(DEFAULT_FEE_SETTINGS)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((data) => { if (data.settings) setFeeSettings(data.settings) })
+      .catch(() => { /* silently use no-fee default */ })
+  }, [])
 
   const lineItems = cart
     .filter((c) => c.quantity > 0)
@@ -28,7 +37,9 @@ export default function CheckoutPanel({ eventId, tiers, cart }: CheckoutPanelPro
       return { ...c, tier }
     })
 
-  const total = lineItems.reduce((sum, item) => sum + item.tier.price_cents * item.quantity, 0)
+  const subtotal = lineItems.reduce((sum, item) => sum + item.tier.price_cents * item.quantity, 0)
+  const feeCents = calculateFee(subtotal, feeSettings)
+  const total = subtotal + feeCents
   const ticketCount = lineItems.reduce((sum, item) => sum + item.quantity, 0)
 
   const handleCheckout = async () => {
@@ -71,14 +82,17 @@ export default function CheckoutPanel({ eventId, tiers, cart }: CheckoutPanelPro
     )
   }
 
+  const hasFee = feeCents > 0
+
   return (
-    <div className="sticky top-28 bg-surface-1 border border-brand-purple/30 rounded-2xl p-6 shadow-brand">
+    <div className="sticky top-28 bg-surface-1 border border-brand-gold/30 rounded-2xl p-6 shadow-gold">
       <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-        <ShoppingCart className="w-5 h-5 text-brand-purple-light" />
+        <ShoppingCart className="w-5 h-5 text-brand-gold" />
         Your Order
       </h3>
 
-      <div className="space-y-3 mb-4">
+      {/* Ticket line items */}
+      <div className="space-y-2.5 mb-4">
         {lineItems.map(({ tierId, tier, quantity }) => (
           <div key={tierId} className="flex justify-between text-sm">
             <span className="text-gray-300">
@@ -89,8 +103,21 @@ export default function CheckoutPanel({ eventId, tiers, cart }: CheckoutPanelPro
         ))}
       </div>
 
-      <div className="border-t border-surface-3 pt-4 mb-5">
-        <div className="flex justify-between items-center">
+      {/* Subtotal + fee breakdown */}
+      <div className="border-t border-surface-3 pt-3 mb-5 space-y-2">
+        {hasFee && (
+          <div className="flex justify-between text-sm text-gray-400">
+            <span>Subtotal</span>
+            <span>{formatPrice(subtotal)}</span>
+          </div>
+        )}
+        {hasFee && (
+          <div className="flex justify-between text-sm text-brand-gold/80">
+            <span>{feeSettings.fee_label}</span>
+            <span>+{formatPrice(feeCents)}</span>
+          </div>
+        )}
+        <div className="flex justify-between items-center pt-1">
           <span className="text-gray-400 text-sm">{ticketCount} ticket{ticketCount !== 1 ? 's' : ''}</span>
           <div className="text-right">
             <p className="text-xs text-gray-500">Total</p>
