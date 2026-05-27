@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, Calendar, Ticket, LogOut, Zap } from 'lucide-react'
+import { LayoutDashboard, Calendar, Ticket, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -17,14 +18,14 @@ export default function AdminSidebar() {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-surface-1 border-r border-surface-3 flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b border-surface-3">
-        <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-brand flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white fill-white" />
+      <div className="p-5 border-b border-brand-gold/20">
+        <Link href="/admin" className="flex items-center gap-3">
+          <div className="relative w-9 h-9 shrink-0">
+            <Image src="/logo.svg" alt="LRV" fill className="object-contain" />
           </div>
-          <div>
-            <p className="text-white font-bold text-sm leading-tight">PulseEvents</p>
-            <p className="text-gray-500 text-xs">Admin</p>
+          <div className="leading-tight">
+            <p className="text-brand-gold font-semibold text-xs tracking-widest uppercase">Le Rendezvous</p>
+            <p className="text-brand-gold/60 text-xs tracking-widest uppercase">Atlanta · Admin</p>
           </div>
         </Link>
       </div>
@@ -40,8 +41,8 @@ export default function AdminSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                 active
-                  ? 'bg-brand-purple/20 text-brand-purple-light border border-brand-purple/30'
-                  : 'text-gray-400 hover:text-white hover:bg-surface-2'
+                  ? 'bg-brand-gold/10 text-brand-gold border border-brand-gold/30'
+                  : 'text-gray-400 hover:text-brand-gold-light hover:bg-surface-2'
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />

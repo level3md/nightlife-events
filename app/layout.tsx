@@ -4,14 +4,14 @@ import { Toaster } from 'react-hot-toast'
 
 export const metadata: Metadata = {
   title: {
-    default: 'PulseEvents — Premium Nightlife & Events',
-    template: '%s | PulseEvents',
+    default:  'Le Rendezvous Atlanta — Premium Nightlife & Events',
+    template: '%s | Le Rendezvous Atlanta',
   },
-  description: 'The premier destination for curated nightlife experiences. From underground electronic nights to exclusive rooftop soirées.',
-  keywords: ['events', 'nightlife', 'tickets', 'VIP', 'parties', 'electronic music'],
+  description: "Atlanta's premier destination for curated nightlife experiences. Exclusive table reservations, VIP bottle service, and unforgettable events.",
+  keywords: ['events', 'nightlife', 'Atlanta', 'VIP', 'bottle service', 'table reservations', 'Le Rendezvous'],
   openGraph: {
-    type: 'website',
-    siteName: 'PulseEvents',
+    type:     'website',
+    siteName: 'Le Rendezvous Atlanta',
   },
 }
 
@@ -24,12 +24,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           position="bottom-right"
           toastOptions={{
             style: {
-              background: '#1a1a24',
+              background: '#0D0F1A',
               color: '#fff',
-              border: '1px solid #2e2e40',
+              border: '1px solid rgba(201,168,76,0.3)',
             },
             success: {
-              iconTheme: { primary: '#a855f7', secondary: '#fff' },
+              iconTheme: { primary: '#C9A84C', secondary: '#0D0F1A' },
             },
           }}
         />

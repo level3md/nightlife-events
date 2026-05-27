@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Zap, LogIn } from 'lucide-react'
+import Image from 'next/image'
+import { LogIn } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { Suspense } from 'react'
@@ -42,14 +43,14 @@ function LoginForm() {
   return (
     <div className="w-full max-w-sm">
       <div className="text-center mb-8">
-        <div className="w-12 h-12 rounded-xl bg-gradient-brand flex items-center justify-center mx-auto mb-4 shadow-brand">
-          <Zap className="w-6 h-6 text-white fill-white" />
+        <div className="relative w-20 h-20 mx-auto mb-4">
+          <Image src="/logo.svg" alt="Le Rendezvous Atlanta" fill className="object-contain drop-shadow-[0_0_20px_rgba(201,168,76,0.4)]" />
         </div>
-        <h1 className="text-2xl font-bold text-white">Admin Login</h1>
-        <p className="text-gray-500 text-sm mt-1">PulseEvents Dashboard</p>
+        <h1 className="text-2xl font-display font-bold text-white tracking-wide">Admin Login</h1>
+        <p className="text-brand-gold/70 text-xs mt-1 tracking-widest uppercase">Le Rendezvous Atlanta</p>
       </div>
 
-      <div className="bg-surface-1 border border-surface-3 rounded-2xl p-6">
+      <div className="bg-surface-1 border border-brand-gold/20 rounded-2xl p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Email"
@@ -90,7 +91,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-4">
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-purple/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-blue/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand-gold/10 rounded-full blur-3xl" />
       </div>
       <div className="relative z-10">
         <Suspense fallback={null}>

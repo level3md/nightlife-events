@@ -18,6 +18,7 @@ dist/
 
 # Vercel
 .vercel
+.vercel/
 
 # TypeScript
 *.tsbuildinfo

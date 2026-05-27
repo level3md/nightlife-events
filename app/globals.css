@@ -2,39 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body:    'Inter', sans-serif;
+  --gold:         #C9A84C;
+  --gold-light:   #E8C97A;
+  --blue:         #1B3D8C;
+  --blue-light:   #2B5FD4;
 }
 
 @layer base {
-  * {
-    @apply box-border;
-  }
+  * { @apply box-border; }
 
-  html {
-    @apply scroll-smooth;
-  }
+  html { @apply scroll-smooth; }
 
   body {
     @apply bg-surface text-gray-100 antialiased;
     font-family: var(--font-body);
+    background-color: #07080F;
   }
 
   h1, h2, h3, h4 {
     font-family: var(--font-display);
+    letter-spacing: 0.02em;
   }
 }
 
 @layer utilities {
-  .text-gradient {
-    @apply bg-gradient-brand bg-clip-text text-transparent;
+  /* Gold shimmer text */
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #8B6914 0%, #E8C97A 45%, #C9A84C 55%, #8B6914 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .text-gradient-gold {
-    @apply bg-gradient-gold bg-clip-text text-transparent;
+  /* Blue → Gold gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, #2B5FD4 0%, #C9A84C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gold shimmer animation */
+  .text-shimmer {
+    background: linear-gradient(90deg, #8B6914 0%, #E8C97A 40%, #C9A84C 60%, #8B6914 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
   }
 
   /* Glassmorphism card */
@@ -47,18 +68,15 @@
     @apply absolute rounded-full blur-3xl opacity-20 pointer-events-none;
   }
 
+  /* Gold border glow */
+  .border-gold-glow {
+    border: 1px solid rgba(201, 168, 76, 0.4);
+    box-shadow: 0 0 20px rgba(201, 168, 76, 0.15), inset 0 0 20px rgba(201, 168, 76, 0.05);
+  }
+
   /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0a0a0f;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #2e2e40;
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #7c3aed;
-  }
+  ::-webkit-scrollbar       { width: 5px; }
+  ::-webkit-scrollbar-track { background: #07080F; }
+  ::-webkit-scrollbar-thumb { background: #1B3D8C; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #C9A84C; }
 }
