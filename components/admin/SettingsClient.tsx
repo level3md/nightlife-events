@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import toast from 'react-hot-toast'
-import { Save, Info } from 'lucide-react'
+import { Save, Info, Video } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { formatPrice } from '@/lib/utils'
@@ -25,6 +25,7 @@ const PREVIEW_SUBTOTAL = 5000 // $50.00 example
 export default function SettingsClient({ initialSettings }: SettingsClientProps) {
   const [saving, setSaving] = useState(false)
   const [settings, setSettings] = useState<FeeSettings>(initialSettings)
+  const [videoUrl, setVideoUrl] = useState(initialSettings.homepage_video_url ?? '')
 
   const update = <K extends keyof FeeSettings>(key: K, value: FeeSettings[K]) =>
     setSettings((prev) => ({ ...prev, [key]: value }))
@@ -51,7 +52,7 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
       const res = await fetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({ ...settings, homepage_video_url: videoUrl || null }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'Save failed')
@@ -79,6 +80,42 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
       </div>
 
       <div className="space-y-6">
+        {/* Homepage appearance */}
+        <div className="bg-surface-1 border border-surface-3 rounded-xl p-5">
+          <h2 className="text-white font-semibold mb-1 text-sm uppercase tracking-wider flex items-center gap-2">
+            <Video className="w-4 h-4 text-brand-gold" />
+            Appearance
+          </h2>
+          <p className="text-gray-500 text-xs mb-5">
+            Customize the homepage hero background.
+          </p>
+
+          <Input
+            label="Homepage Background Video URL"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://yourcdn.com/promo.mp4"
+            hint="Must be a direct video file (.mp4 recommended). YouTube/Vimeo links won't autoplay as backgrounds. Leave blank to use the animated gradient."
+          />
+
+          {videoUrl && (
+            <div className="mt-3 rounded-xl overflow-hidden bg-black relative aspect-video">
+              <video
+                key={videoUrl}
+                src={videoUrl}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover opacity-80"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="text-white text-xs bg-black/50 px-3 py-1 rounded-full">Live preview</p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Fee configuration */}
         <div className="bg-surface-1 border border-surface-3 rounded-xl p-5">
           <h2 className="text-white font-semibold mb-1 text-sm uppercase tracking-wider">Processing Fee</h2>

@@ -14,6 +14,7 @@ const updateSchema = z.object({
   event_date: z.string().datetime().optional(),
   doors_open: z.string().datetime().optional().nullable(),
   image_url: z.string().url().optional().nullable().or(z.literal('')),
+  video_url: z.string().url().optional().nullable().or(z.literal('')),
   status: z.enum(['draft', 'published', 'cancelled', 'past']).optional(),
   featured: z.boolean().optional(),
   age_restriction: z.string().optional(),

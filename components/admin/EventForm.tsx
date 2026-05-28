@@ -34,6 +34,7 @@ export default function EventForm({ event, tiers: initialTiers = [] }: EventForm
     event_date: event?.event_date ? toDatetimeLocal(event.event_date) : '',
     doors_open: event?.doors_open ? toDatetimeLocal(event.doors_open) : '',
     image_url: event?.image_url ?? '',
+    video_url: event?.video_url ?? '',
     status: event?.status ?? 'draft',
     featured: event?.featured ?? false,
     age_restriction: event?.age_restriction ?? '21+',
@@ -56,6 +57,7 @@ export default function EventForm({ event, tiers: initialTiers = [] }: EventForm
         event_date: new Date(form.event_date).toISOString(),
         doors_open: form.doors_open ? new Date(form.doors_open).toISOString() : null,
         image_url: form.image_url || null,
+        video_url: form.video_url || null,
       }
 
       const res = await fetch(
@@ -178,20 +180,30 @@ export default function EventForm({ event, tiers: initialTiers = [] }: EventForm
         </Section>
 
         {/* Media */}
-        <Section title="Cover Image">
+        <Section title="Media">
           <Input
-            label="Image URL"
+            label="Cover Image URL"
             value={form.image_url}
             onChange={(e) => update('image_url', e.target.value)}
             placeholder="https://..."
-            hint="Use a Supabase Storage URL or any HTTPS image URL"
+            hint="Optional — Supabase Storage or any HTTPS image URL. Leave blank to use the default gradient."
           />
           {form.image_url && (
-            <div className="mt-3 rounded-xl overflow-hidden h-48 bg-surface-2 relative">
+            <div className="mt-2 rounded-xl overflow-hidden h-48 bg-surface-2 relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
+              <img src={form.image_url} alt="Cover preview" className="w-full h-full object-cover" />
             </div>
           )}
+
+          <div className="pt-2 border-t border-surface-3">
+            <Input
+              label="Event Video URL"
+              value={form.video_url}
+              onChange={(e) => update('video_url', e.target.value)}
+              placeholder="https://youtube.com/watch?v=... or https://vimeo.com/... or direct .mp4"
+              hint="Optional — YouTube, Vimeo, or direct video link. Shown as a playable embed on the event page."
+            />
+          </div>
         </Section>
 
         {/* Ticket tiers — only on edit page */}

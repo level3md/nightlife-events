@@ -15,6 +15,7 @@ const eventSchema = z.object({
   event_date: z.string().datetime(),
   doors_open: z.string().datetime().optional(),
   image_url: z.string().url().optional().or(z.literal('')),
+  video_url: z.string().url().optional().or(z.literal('')),
   status: z.enum(['draft', 'published', 'cancelled', 'past']).default('draft'),
   featured: z.boolean().default(false),
   age_restriction: z.string().optional(),
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
       ...data,
       slug,
       image_url: data.image_url || null,
+      video_url: data.video_url || null,
       doors_open: data.doors_open || null,
     })
     .select()

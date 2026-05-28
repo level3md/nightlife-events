@@ -15,6 +15,7 @@ export interface Event {
   featured: boolean
   age_restriction: string | null
   dress_code: string | null
+  video_url: string | null
   created_at: string
   updated_at: string
   ticket_tiers?: TicketTier[]
@@ -65,9 +66,10 @@ export type FeeType = 'none' | 'percentage' | 'flat' | 'both'
 
 export interface FeeSettings {
   fee_type: FeeType
-  fee_percentage: number   // e.g. 3.5 means 3.5%
-  fee_flat_cents: number   // e.g. 150 means $1.50
-  fee_label: string        // e.g. "Service Fee"
+  fee_percentage: number        // e.g. 3.5 means 3.5%
+  fee_flat_cents: number        // e.g. 150 means $1.50
+  fee_label: string             // e.g. "Service Fee"
+  homepage_video_url?: string | null  // direct .mp4 URL for hero background
 }
 
 // Cart state managed client-side before checkout

@@ -12,6 +12,7 @@ const updateSchema = z.object({
   fee_percentage: z.number().min(0).max(100),
   fee_flat_cents: z.number().int().min(0),
   fee_label: z.string().min(1).max(60),
+  homepage_video_url: z.string().url().nullable().optional().or(z.literal('')),
 })
 
 // GET /api/admin/settings
@@ -22,7 +23,7 @@ export async function GET() {
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('platform_settings')
-    .select('fee_type, fee_percentage, fee_flat_cents, fee_label')
+    .select('fee_type, fee_percentage, fee_flat_cents, fee_label, homepage_video_url')
     .eq('id', 1)
     .single()
 
@@ -46,7 +47,7 @@ export async function PATCH(req: Request) {
   const { data, error } = await supabase
     .from('platform_settings')
     .upsert({ id: 1, ...parsed.data, updated_at: new Date().toISOString() })
-    .select('fee_type, fee_percentage, fee_flat_cents, fee_label')
+    .select('fee_type, fee_percentage, fee_flat_cents, fee_label, homepage_video_url')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

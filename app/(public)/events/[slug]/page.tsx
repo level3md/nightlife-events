@@ -9,6 +9,7 @@ import type { Event } from '@/types'
 import CountdownTimer from '@/components/events/CountdownTimer'
 import TicketTierCard from '@/components/events/TicketTierCard'
 import CheckoutPanel from '@/components/events/CheckoutPanel'
+import VideoEmbed from '@/components/events/VideoEmbed'
 import Badge from '@/components/ui/Badge'
 
 // This is a client component so we can manage cart state.
@@ -117,6 +118,14 @@ export default function EventDetailPage() {
                 <div className="text-gray-400 leading-relaxed whitespace-pre-line">
                   {event.description}
                 </div>
+              </div>
+            )}
+
+            {/* Event video */}
+            {event.video_url && (
+              <div className="bg-surface-1 border border-surface-3 rounded-2xl p-6 sm:p-8 mb-6">
+                <h2 className="text-white font-bold text-xl mb-4">Event Video</h2>
+                <VideoEmbed url={event.video_url} title={event.name} />
               </div>
             )}
 

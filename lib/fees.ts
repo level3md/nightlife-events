@@ -14,10 +14,11 @@ export function calculateFee(subtotalCents: number, settings: FeeSettings): numb
   return fee
 }
 
-/** Default fee settings (no fee). Used as fallback when DB is unavailable. */
+/** Default settings. Used as fallback when DB is unavailable. */
 export const DEFAULT_FEE_SETTINGS: FeeSettings = {
   fee_type: 'none',
   fee_percentage: 0,
   fee_flat_cents: 0,
   fee_label: 'Service Fee',
+  homepage_video_url: null,
 }

@@ -10,7 +10,7 @@ export async function GET() {
     const supabase = createAdminClient()
     const { data } = await supabase
       .from('platform_settings')
-      .select('fee_type, fee_percentage, fee_flat_cents, fee_label')
+      .select('fee_type, fee_percentage, fee_flat_cents, fee_label, homepage_video_url')
       .eq('id', 1)
       .single()
 

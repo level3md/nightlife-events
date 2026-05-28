@@ -21,19 +21,54 @@ async function getFeaturedEvents(): Promise<Event[]> {
   return (data as Event[]) ?? []
 }
 
+async function getHomepageVideoUrl(): Promise<string | null> {
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase
+      .from('platform_settings')
+      .select('homepage_video_url')
+      .eq('id', 1)
+      .single()
+    return (data as { homepage_video_url?: string | null } | null)?.homepage_video_url ?? null
+  } catch {
+    return null
+  }
+}
+
 export default async function HomePage() {
-  const events = await getFeaturedEvents()
+  const [events, heroVideoUrl] = await Promise.all([getFeaturedEvents(), getHomepageVideoUrl()])
 
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Background orbs */}
-        <div className="glow-orb w-[500px] h-[500px] bg-brand-blue    top-1/4  -left-40  opacity-25" />
-        <div className="glow-orb w-[400px] h-[400px] bg-brand-gold    top-1/3  -right-32 opacity-15" />
-        <div className="glow-orb w-[300px] h-[300px] bg-brand-blue-dark bottom-1/4 left-1/2 opacity-20" />
+        {/* Background — video OR animated orbs */}
+        {heroVideoUrl ? (
+          <>
+            <video
+              src={heroVideoUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+              aria-hidden="true"
+            />
+            {/* Layered overlays: dark base + gold gradient bottom fade */}
+            <div className="absolute inset-0 bg-black/55" />
+            <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-surface/60 via-transparent to-transparent" />
+          </>
+        ) : (
+          <>
+            {/* Animated orbs (default) */}
+            <div className="glow-orb w-[500px] h-[500px] bg-brand-blue    top-1/4  -left-40  opacity-25" />
+            <div className="glow-orb w-[400px] h-[400px] bg-brand-gold    top-1/3  -right-32 opacity-15" />
+            <div className="glow-orb w-[300px] h-[300px] bg-brand-blue-dark bottom-1/4 left-1/2 opacity-20" />
+          </>
+        )}
 
-        {/* Subtle grid */}
+        {/* Subtle gold grid (always visible) */}
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
